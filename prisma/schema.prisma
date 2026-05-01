@@ -1,0 +1,47 @@
+// Prisma schema for the case study portfolio platform.
+//
+// This schema manages the table structure only.
+// RLS policies and Supabase Storage bucket setup are handled separately
+// in supabase/rls.sql and supabase/storage.sql — run those after migration.
+//
+// Connection: uses the Supabase direct connection string (not the pooler)
+// so that Prisma migrations can run DDL statements.
+// Set DATABASE_URL in .env to your Supabase direct connection string:
+//   postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model CaseStudy {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title          String
+  description    String
+  cover_image_url String
+  slug           String    @unique
+  status         String    @default("draft")
+  created_at     DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime  @default(now()) @db.Timestamptz(6)
+  sections       Section[]
+
+  @@map("case_studies")
+}
+
+model Section {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  case_study_id String    @db.Uuid
+  type          String
+  content       String?
+  media_url     String?
+  order         Int
+  created_at    DateTime  @default(now()) @db.Timestamptz(6)
+  case_study    CaseStudy @relation(fields: [case_study_id], references: [id], onDelete: Cascade)
+
+  @@map("sections")
+}
