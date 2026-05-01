@@ -27,7 +27,7 @@ export default async function HomePage() {
       <Nav />
 
       {/* ── Hero ────────────────────────────────────────────────── */}
-      <section className="flex min-h-[85vh] flex-col justify-end px-5 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 pointer-events-none">
+      <section className="flex min-h-[50vh]  md:min-h-[85vh] flex-col justify-end px-5 pb-12 pt-28 sm:px-6 sm:pb-16 sm:pt-32 pointer-events-none">
         <div className="max-w-5xl pointer-events-auto">
           <p className="mb-3 text-xs tracking-[0.3em] uppercase text-neutral-500">
             Selected Work
