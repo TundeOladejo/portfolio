@@ -258,12 +258,12 @@ export default function RichTextEditor({
                 className="outline-none px-4 py-3 text-sm text-neutral-200 leading-relaxed"
                 style={{ minHeight }}
                 aria-placeholder={placeholder}
+                placeholder={
+                  <div className="absolute top-3 left-4 text-sm text-neutral-700 pointer-events-none select-none">
+                    {placeholder}
+                  </div>
+                }
               />
-            }
-            placeholder={
-              <div className="absolute top-3 left-4 text-sm text-neutral-700 pointer-events-none select-none">
-                {placeholder}
-              </div>
             }
             ErrorBoundary={({ children }) => <>{children}</>}
           />

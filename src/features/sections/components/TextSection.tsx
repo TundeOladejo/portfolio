@@ -15,7 +15,7 @@ export default function TextSection({ content }: TextSectionProps) {
   if (!isHtml) {
     return (
       <div className="px-5 sm:px-10">
-        <p className="text-lg sm:text-xl font-light leading-relaxed text-neutral-300 max-w-3xl whitespace-pre-wrap">
+        <p className="text-lg sm:text-xl font-light leading-relaxed text-neutral-300 max-w-6xl whitespace-pre-wrap">
           {content}
         </p>
       </div>
@@ -25,7 +25,7 @@ export default function TextSection({ content }: TextSectionProps) {
   return (
     <div className="px-5 sm:px-10">
       <div
-        className="prose-case-study max-w-3xl"
+        className="prose-case-study max-w-6xl"
         dangerouslySetInnerHTML={{ __html: content }}
       />
     </div>
