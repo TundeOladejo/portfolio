@@ -5,19 +5,17 @@ interface ImageSectionProps {
   alt?: string;
 }
 
-export default function ImageSection({
-  mediaUrl,
-  alt = '',
-}: ImageSectionProps) {
+export default function ImageSection({ mediaUrl, alt = '' }: ImageSectionProps) {
   if (!mediaUrl) return null;
 
   return (
-    <div className="relative w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
+    // Full-bleed — no horizontal padding, edge to edge
+    <div className="relative w-full aspect-video sm:aspect-[16/8]">
       <Image
         src={mediaUrl}
         alt={alt}
         fill
-        sizes="(max-width: 768px) 100vw, 80vw"
+        sizes="100vw"
         className="object-cover"
       />
     </div>

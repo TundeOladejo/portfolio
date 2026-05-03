@@ -231,3 +231,90 @@ export async function deleteSection(id: string): Promise<ActionResult<null>> {
 
   return { success: true, data: null };
 }
+
+// ---------------------------------------------------------------------------
+// groupSections
+// ---------------------------------------------------------------------------
+
+/**
+ * Groups a set of sections into a column layout (2 or 3 columns).
+ * All sections in the group share the same column_group UUID and column_count.
+ */
+export async function groupSections(
+  sectionIds: string[],
+  columnCount: 2 | 3
+): Promise<ActionResult<null>> {
+  const supabase = await createServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, errors: { _form: ['Unauthorized'] } };
+
+  if (sectionIds.length < 2) {
+    return { success: false, errors: { _form: ['Select at least 2 sections to group'] } };
+  }
+
+  // Generate a shared group ID
+  const groupId = crypto.randomUUID();
+
+  for (const id of sectionIds) {
+    const { error } = await supabase
+      .from('sections')
+      .update({ column_group: groupId, column_count: columnCount })
+      .eq('id', id);
+
+    if (error) return { success: false, errors: { _form: [error.message] } };
+  }
+
+  return { success: true, data: null };
+}
+
+// ---------------------------------------------------------------------------
+// ungroupSection
+// ---------------------------------------------------------------------------
+
+/**
+ * Removes a section from its column group (sets column_group and column_count to null).
+ * If only one section remains in the group, it is also ungrouped.
+ */
+export async function ungroupSection(
+  sectionId: string
+): Promise<ActionResult<null>> {
+  const supabase = await createServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { success: false, errors: { _form: ['Unauthorized'] } };
+
+  // Get the section's current group
+  const { data: section } = await supabase
+    .from('sections')
+    .select('column_group')
+    .eq('id', sectionId)
+    .single();
+
+  if (!section?.column_group) {
+    return { success: true, data: null }; // already ungrouped
+  }
+
+  const groupId = section.column_group;
+
+  // Ungroup this section
+  await supabase
+    .from('sections')
+    .update({ column_group: null, column_count: null })
+    .eq('id', sectionId);
+
+  // If only one section remains in the group, ungroup it too
+  const { data: remaining } = await supabase
+    .from('sections')
+    .select('id')
+    .eq('column_group', groupId);
+
+  if (remaining && remaining.length === 1) {
+    await supabase
+      .from('sections')
+      .update({ column_group: null, column_count: null })
+      .eq('id', remaining[0].id);
+  }
+
+  return { success: true, data: null };
+}

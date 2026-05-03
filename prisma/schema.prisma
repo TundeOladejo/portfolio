@@ -40,6 +40,8 @@ model Section {
   content       String?
   media_url     String?
   order         Int
+  column_group  String?   @db.Uuid   // sections sharing this UUID render in a grid
+  column_count  Int?                  // 2 or 3 — set on all sections in the group
   created_at    DateTime  @default(now()) @db.Timestamptz(6)
   case_study    CaseStudy @relation(fields: [case_study_id], references: [id], onDelete: Cascade)
 

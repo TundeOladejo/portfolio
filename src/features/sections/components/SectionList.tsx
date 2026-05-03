@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { addSection } from '@/src/features/sections/actions';
+import { addSection, groupSections } from '@/src/features/sections/actions';
 import type { Section } from '@/src/features/sections/types';
 import SectionEditor from './SectionEditor';
 
@@ -18,11 +19,33 @@ const SECTION_TYPES = [
 
 export default function SectionList({ caseStudyId, sections }: SectionListProps) {
   const router = useRouter();
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [grouping, setGrouping] = useState(false);
 
   async function handleAdd(type: 'text' | 'image' | 'video') {
     await addSection(caseStudyId, type);
     router.refresh();
   }
+
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleGroup(cols: 2 | 3) {
+    if (selected.size < 2) return;
+    setGrouping(true);
+    await groupSections(Array.from(selected), cols);
+    setSelected(new Set());
+    setGrouping(false);
+    router.refresh();
+  }
+
+  const canGroup = selected.size >= 2;
 
   return (
     <div className="flex flex-col gap-6">
@@ -52,19 +75,73 @@ export default function SectionList({ caseStudyId, sections }: SectionListProps)
           <p className="text-xs text-neutral-700 mt-1">Add a section above to start building your case study.</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
-          <p className="text-xs tracking-widest uppercase text-neutral-500">
-            {sections.length} Section{sections.length !== 1 ? 's' : ''}
-          </p>
-          {sections.map((section, index) => (
-            <SectionEditor
-              key={section.id}
-              section={section}
-              index={index}
-              total={sections.length}
-              allSections={sections}
-            />
-          ))}
+        <div className="flex flex-col gap-3">
+          {/* Column group toolbar */}
+          <div className="flex items-center justify-between">
+            <p className="text-xs tracking-widest uppercase text-neutral-500">
+              {sections.length} Section{sections.length !== 1 ? 's' : ''}
+            </p>
+            <div className="flex items-center gap-2">
+              {selected.size > 0 && (
+                <span className="text-xs text-neutral-500">{selected.size} selected</span>
+              )}
+              <button
+                type="button"
+                onClick={() => handleGroup(2)}
+                disabled={!canGroup || grouping}
+                title="Group selected sections into 2 columns"
+                className={`px-2.5 py-1 text-xs border transition-colors ${
+                  canGroup
+                    ? 'border-neutral-600 text-neutral-300 hover:border-neutral-400 hover:text-white'
+                    : 'border-neutral-800 text-neutral-700 cursor-not-allowed'
+                }`}
+              >
+                ⊞ 2-col
+              </button>
+              <button
+                type="button"
+                onClick={() => handleGroup(3)}
+                disabled={!canGroup || grouping}
+                title="Group selected sections into 3 columns"
+                className={`px-2.5 py-1 text-xs border transition-colors ${
+                  canGroup
+                    ? 'border-neutral-600 text-neutral-300 hover:border-neutral-400 hover:text-white'
+                    : 'border-neutral-800 text-neutral-700 cursor-not-allowed'
+                }`}
+              >
+                ⊟ 3-col
+              </button>
+              {selected.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setSelected(new Set())}
+                  className="px-2.5 py-1 text-xs border border-neutral-800 text-neutral-600 hover:text-neutral-400 transition-colors"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          {selected.size === 0 && sections.some(s => !s.column_group) && (
+            <p className="text-xs text-neutral-700">
+              Tip: check sections below to group them into columns.
+            </p>
+          )}
+
+          <div className="flex flex-col gap-2">
+            {sections.map((section, index) => (
+              <SectionEditor
+                key={section.id}
+                section={section}
+                index={index}
+                total={sections.length}
+                allSections={sections}
+                selected={selected.has(section.id)}
+                onToggleSelect={() => toggleSelect(section.id)}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>
